@@ -1,0 +1,1 @@
+Get-Content .\input.txt | Foreach -Begin { $sum = 0 } -Process { while (($_ = [Math]::floor($_ / 3) - 2) -gt 0) { $sum += $_; } } -End { $sum }

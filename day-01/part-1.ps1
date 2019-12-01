@@ -1,0 +1,1 @@
+Get-Content .\input.txt | % { [Math]::Floor($_ / 3.0) - 2 } | Measure -Sum | Select -Expand Sum
