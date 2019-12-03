@@ -59,6 +59,7 @@ Function Get-Length {
 $sort = { $input | Sort-Object -Property { $_[0] }, { $_[1] } }
 
 
+# Beware, ineffective solution
 (Get-Content $Path `
 | % {
         $isFirst = $true;
