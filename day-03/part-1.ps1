@@ -51,45 +51,31 @@ Get-Content "input.txt" `
         $isFirst = $true;
         $lines = @([System.Collections.ArrayList]::new(), [System.Collections.ArrayList]::new()) 
     } `
-    { 
-        if ($isFirst) {
-            $_.Split(",") `
-            | Read-Direction `
-            | % { 
-                    $start = @(0, 0)
-                } `
-                {
-                    $end = Move-Point -Origin $start -Delta $_ 
-                    
-                    $line = @($start, $end) | Sort-Object -Property { $_[0] }, { $_[1] }
-                    $lines[$_.Dir].Add($line) | Out-Null
-                    
-                    $start = $end
+    {
+        $_.Split(",") `
+        | Read-Direction `
+        | % { $start = @(0, 0) } `
+            { 
+                $end = Move-Point -Origin $start -Delta $_
+                $line = @($start, $end) | Sort-Object -Property { $_[0] }, { $_[1] }
+
+                $start = $end
+
+                @{ Dir = $_.Dir; Line = $line }
+            } `
+        | % {
+                if ($isFirst) {
+                    $lines[$_.Dir].Add($_.Line) | Out-Null
+                } 
+                else {
+                    , ($lines[1 - $_.Dir] | Get-Intersection -B $_.Line -Dir $_.Dir)
                 }
+            }
 
-            $isFirst = $false;
-        }
-        else {
-            $_.Split(",") `
-            | Read-Direction `
-            | % {
-                    $start = @(0, 0)
-                } `
-                {
-                    $end = Move-Point -Origin $start -Delta $_ 
-                    
-                    $line = @($start, $end) | Sort-Object -Property { $_[0] }, { $_[1] }
-                   
-                    $start = $end
-
-                    $intersection = $lines[1 - $_.Dir] `
-                    | Get-Intersection -B $line -Dir $_.Dir
-
-                    if ($intersection) {
-                        [int]([Math]::Abs([float]$intersection[0])) + [int]([Math]::Abs([float]$intersection[1]))
-                    }
-                }
-        }
+        $isFirst = $false
     } `
+    | % { 
+            [int]([Math]::Abs([float]$_[0])) + [int]([Math]::Abs([float]$_[1]))
+        } `
     | Sort-Object `
     | Select-Object -First 1
