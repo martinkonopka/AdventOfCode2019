@@ -50,10 +50,16 @@ Function Get-Intersection {
 }
 
 
+Function Get-Length {
+    param([int]$from, [int]$to) 
+        [int]([Math]::Abs([float]($to - $from)))
+}
+
+
 $sort = { $input | Sort-Object -Property { $_[0] }, { $_[1] } }
 
 
-Get-Content $Path `
+(Get-Content $Path `
 | % {
         $isFirst = $true;
         $lines = @([System.Collections.ArrayList]::new(), [System.Collections.ArrayList]::new()) 
@@ -61,31 +67,40 @@ Get-Content $Path `
     {
         $_.Split(",") `
         | Read-Direction `
-        | % { $start = @(0, 0) } `
+        | % { $start = @(0, 0); $length = 0 } `
             { 
                 $end = Move-Point -Origin $start -Delta $_
                 $line = @($start, $end)
-
+                
                 $start = $end
+            
+                @{ Dir = $_.Dir; Line = $line ; Length = $length }
 
-                @{ Dir = $_.Dir; Line = $line }
+                $length += Get-Length -From $line[0][$_.Dir] -To $line[1][$_.Dir]
             } `
         | % {
                 if ($isFirst) {
-                    $lines[$_.Dir].Add($_.Line) | Out-Null
+                    $lines[$_.Dir].Add(@( $_.Line[0], $_.Line[1], $_.Length )) | Out-Null
                 } 
                 else {
-                    $b = $_.Line | & $sort
-                    
-                    , ($lines[1 - $_.Dir] | % { , ($_ | & $sort) } | Get-Intersection -B $b -Dir $_.Dir)
+                    $current = $_
+                    $lines[1 - $current.Dir] `
+                    | % {
+                            $a = $_ | & $sort
+                            $b = $current.Line | & $sort
+
+                            $intersection = Get-Intersection -A $a -B $b -Dir $current.Dir
+                            if ($intersection) {
+                                return $_[2] `
+                                    + (Get-Length -From $_[0][1 - $current.Dir] -To $intersection[1 - $current.Dir]) `
+                                    + $current.Length `
+                                    + (Get-Length -From $current.Line[0][$current.Dir] -To $intersection[$current.Dir])
+                            }
+                        }
                 }
             }
 
         $isFirst = $false
-    } `
-    | % { 
-            [int]([Math]::Abs([float]$_[0])) + [int]([Math]::Abs([float]$_[1]))
-        } `
-    | Where-Object { $_ -gt 0 } `
+    }) `
     | Measure-Object -Minimum `
     | Select-Object -Expand Minimum
