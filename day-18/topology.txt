@@ -1,0 +1,21 @@
+_ - c
+_ - w, s
+_ - r
+n, i, f - a
+y - q
+w, t - o
+w, t, j - f
+c - j, t,b
+z/a - g, x, k, d, h, p
+i, n, y, l, e\
+r, p, g - v,m
+r, p, g, e - u
+r, p, g, x, k, d, h - z
+
+
+z,u,v,m,l,i,n,y,g,x,k,d,h,p,j,t,b,f,o,q,a,r,s,c,w
+
+r
+- c
+- w, s
+- r
